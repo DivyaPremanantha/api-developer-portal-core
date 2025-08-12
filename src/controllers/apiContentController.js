@@ -104,14 +104,14 @@ const loadAPIs = async (req, res) => {
             if (cpOrgID && Array.isArray(req.user?.authorizedOrgs) && !req.user.authorizedOrgs?.includes(cpOrgID)) {
                 publicMode = true;
             }
-            const allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?limit=1000`, {}, {}, publicMode);
-            if (allowedAPIList) {
-                //filter apis based on the roles
-                metaDataList = util.filterAllowedAPIs(metaDataList, allowedAPIList.list);
-            } else {
-                console.log("Cannot retrieve allowed API list from control plane");
-                metaDataList = [];
-            }
+            // const allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?limit=1000`, {}, {}, publicMode);
+            // if (allowedAPIList) {
+            //     //filter apis based on the roles
+            //     metaDataList = util.filterAllowedAPIs(metaDataList, allowedAPIList.list);
+            // } else {
+            //     console.log("Cannot retrieve allowed API list from control plane");
+            //     metaDataList = [];
+            // }
 
             let profile = null;
             if (req.user) {
@@ -202,28 +202,29 @@ const loadAPIContent = async (req, res) => {
             const metaData = await loadAPIMetaData(req, orgID, apiID);
             let apiName = metaData ? metaData.apiHandle?.split('-v')[0] : "";
             const version = metaData ? metaData.apiInfo.apiVersion : "";
+            let apiDetail;
             //check whether user has access to the API
-            let allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?query=name:"${apiName}"+version:${version}`, {}, {});
-            if (allowedAPIList.count === 0) {
-                apiName = metaData.apiInfo.apiName;
-                allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?query=name:"${apiName}"+version:${version}`, {}, {});
+            // let allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?query=name:"${apiName}"+version:${version}`, {}, {});
+            // if (allowedAPIList.count === 0) {
+            //     apiName = metaData.apiInfo.apiName;
+            //     allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?query=name:"${apiName}"+version:${version}`, {}, {});
 
-            }
+            // }
+            // const apiDetail = await util.invokeApiRequest(req, 'GET', controlPlaneUrl + `/apis/${metaData.apiReferenceID}`, null, null);
+            
+            // if (allowedAPIList.count === 0) {
+            //     if (!(req.user)) {
+            //         console.log("User is not authorized to access the API or user session expired, hence redirecting to login page");
+            //         res.redirect(req.originalUrl.split("/api/")[0] + '/login');
+            //     } else {
+            //         html = renderTemplate('../pages/error-page/page.hbs', "./src/defaultContent/" + 'layout/main.hbs', templateContent, true);
+            //         res.send(html);
+            //     }
+            // }
             let templateContent = {
                 baseUrl: '/' + orgName + constants.ROUTE.VIEWS_PATH + viewName,
                 errorMessage: constants.ERROR_MESSAGE.UNAUTHORIZED_API,
                 devportalMode: devportalMode,
-            }
-            const apiDetail = await util.invokeApiRequest(req, 'GET', controlPlaneUrl + `/apis/${metaData.apiReferenceID}`, null, null);
-
-            if (allowedAPIList.count === 0) {
-                if (!(req.user)) {
-                    console.log("User is not authorized to access the API or user session expired, hence redirecting to login page");
-                    res.redirect(req.originalUrl.split("/api/")[0] + '/login');
-                } else {
-                    html = renderTemplate('../pages/error-page/page.hbs', "./src/defaultContent/" + 'layout/main.hbs', templateContent, true);
-                    res.send(html);
-                }
             }
             let subscriptionPlans = await util.appendSubscriptionPlanDetails(orgID, metaData.subscriptionPolicies);
             let providerUrl;
@@ -308,7 +309,7 @@ const loadAPIContent = async (req, res) => {
                 resources: apiDetails,
                 orgID: orgID,
                 schemaDefinition: schemaDefinition,
-                scopes: apiDetail.scopes,
+                scopes: apiDetail?.scopes,
                 devportalMode: devportalMode,
                 profile: req.isAuthenticated() ? profile : null
             };
@@ -445,37 +446,37 @@ const loadDocument = async (req, res) => {
         const version = apiMetadata ? apiMetadata.apiInfo.apiVersion : "";
         //check whether user has access to the API
 
-        let allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?query=name:"${apiName}"+version:${version}`, {}, {});
-        if (allowedAPIList.count == 0) {
-            apiName = apiMetadata.apiInfo.apiName;
-            allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?query=name:"${apiName}"+version:${version}`, {}, {});
-        }
-        if (allowedAPIList.count === 0) {
-            templateContent = {
-                errorMessage: constants.ERROR_MESSAGE.UNAUTHORIZED_API,
-                baseUrl: '/' + orgName + constants.ROUTE.VIEWS_PATH + viewName,
-                baseDocUrl: baseDocUrl,
-                devportalMode: devportalMode,
-            }
-            html = renderTemplate('../pages/error-page/page.hbs', "./src/defaultContent/" + 'layout/main.hbs', templateContent, true);
-            res.send(html);
-        }
+        // let allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?query=name:"${apiName}"+version:${version}`, {}, {});
+        // if (allowedAPIList.count == 0) {
+        //     apiName = apiMetadata.apiInfo.apiName;
+        //     allowedAPIList = await util.invokeApiRequest(req, 'GET', `${controlPlaneUrl}/apis?query=name:"${apiName}"+version:${version}`, {}, {});
+        // }
+        // if (allowedAPIList.count === 0) {
+        //     templateContent = {
+        //         errorMessage: constants.ERROR_MESSAGE.UNAUTHORIZED_API,
+        //         baseUrl: '/' + orgName + constants.ROUTE.VIEWS_PATH + viewName,
+        //         baseDocUrl: baseDocUrl,
+        //         devportalMode: devportalMode,
+        //     }
+        //     html = renderTemplate('../pages/error-page/page.hbs', "./src/defaultContent/" + 'layout/main.hbs', templateContent, true);
+        //     res.send(html);
+        // }
         //load API definition
         if (req.originalUrl.includes(constants.FILE_NAME.API_SPECIFICATION_PATH)) {
 
 
             let modifiedSwagger = replaceEndpointParams(JSON.parse(definitionResponse.swagger), apiMetadata.endPoints.productionURL, apiMetadata.endPoints.sandboxURL);
-            const response = await util.invokeApiRequest(req, 'GET', controlPlaneUrl + `/apis/${apiMetadata.apiReferenceID}`, null, null);
-            if (response.securityScheme.includes("api_key")) {
-                modifiedSwagger.components.securitySchemes.ApiKeyAuth = { "type": "apiKey", "name": `${response.apiKeyHeader}`, "in": "header" };
-                for (let path in modifiedSwagger.paths) {
-                    for (let method in modifiedSwagger.paths[path]) {
-                        if (modifiedSwagger.paths[path].hasOwnProperty(method)) {
-                            modifiedSwagger.paths[path][method].security[0].ApiKeyAuth = [];
-                        }
-                    }
-                }
-            }
+            // const response = await util.invokeApiRequest(req, 'GET', controlPlaneUrl + `/apis/${apiMetadata.apiReferenceID}`, null, null);
+            // if (response.securityScheme.includes("api_key")) {
+            //     modifiedSwagger.components.securitySchemes.ApiKeyAuth = { "type": "apiKey", "name": `${response.apiKeyHeader}`, "in": "header" };
+            //     for (let path in modifiedSwagger.paths) {
+            //         for (let method in modifiedSwagger.paths[path]) {
+            //             if (modifiedSwagger.paths[path].hasOwnProperty(method)) {
+            //                 modifiedSwagger.paths[path][method].security[0].ApiKeyAuth = [];
+            //             }
+            //         }
+            //     }
+            // }
             templateContent.swagger = JSON.stringify(modifiedSwagger);
             templateContent.isAPIDefinition = true;
         }
@@ -505,7 +506,7 @@ const loadDocument = async (req, res) => {
                 const apiMetadata = await apiDao.getAPIMetadata(orgID, apiID);
                 let apiType = apiMetadata[0].dataValues.API_TYPE;
                 templateContent.baseUrl = '/' + orgName + constants.ROUTE.VIEWS_PATH + viewName;
-                templateContent.baseDocUrl = baseDocUrl;                
+                templateContent.baseDocUrl = baseDocUrl;
                 templateContent.docTypes = docNames;
                 let profile = null;
                 if (req.user) {

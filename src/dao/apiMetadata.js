@@ -1204,6 +1204,7 @@ const deleteAPIMetadata = async (orgID, apiID, t) => {
 }
 
 const updateAPIMetadata = async (orgID, apiID, apiMetadata, t) => {
+    console.log("Updating API Metadata for API ID:", apiID, "Org ID:", orgID, "Metadata:", apiMetadata);
 
     const apiInfo = apiMetadata.apiInfo;
     let owners = {};

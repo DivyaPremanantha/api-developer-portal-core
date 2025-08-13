@@ -7,7 +7,7 @@
 /* Sidebar base styles */
 .sidebar {
     position: fixed;
-    top: 5rem;
+    top: 4rem;
     left: 0;
     z-index: 1000;
     display: flex;

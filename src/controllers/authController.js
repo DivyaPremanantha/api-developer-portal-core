@@ -119,7 +119,7 @@ const handleCallback = async (req, res, next) => {
         },
         (err, user) => {
             if (err || !user) {
-                if (err.name === 'AuthorizationError' && err.code === 'login_required') {
+                if (err?.name === 'AuthorizationError' && err?.code === 'login_required') {
                     return res.redirect(req.session.returnTo);
                 } else {
                     return next(err || new Error('Authentication failed'));
@@ -212,18 +212,31 @@ const handleLogOutLanding = async (req, res) => {
     res.redirect(currentPathURI);
 }
 
-const handleSilentSSO = async (req, res, next) => {
+const handleSilentSSO = (req, res, next) => {
+    console.log('Handling silent SSO for', req.params.orgName);
+    console.log('IsAuthenticated', req.isAuthenticated());
 
-    await req.session.save((err) => {
-        req.session.returnTo = req.originalUrl;
+    // If already authenticated, continue
+    if (req.isAuthenticated()) {
+        return next();
+    }
 
-        if (req.isAuthenticated() || req.session.silentAuthRedirected) {
-            return next();
-        } else {
-            passport.authenticate('oauth2', { prompt: 'none' })(req, res, () => { });
-            req.session.silentAuthRedirected = true;
+    // If we already tried silent auth once, stop looping
+    if (req.session.silentAuthRedirected) {
+        console.log('Silent SSO already attempted, skipping...');
+        if (!(req.isAuthenticated())) {
+            fidp = 'email';
+            passport.authenticate('oauth2', { prompt: 'none' })(req, res, next);
         }
-    });
+        return next();
+    }
+
+    // Mark that we tried silent SSO
+    req.session.silentAuthRedirected = true;
+    req.session.returnTo = req.originalUrl;
+
+    // Trigger silent authentication
+    passport.authenticate('oauth2', { prompt: 'none' })(req, res, next);
 };
 
 module.exports = {
